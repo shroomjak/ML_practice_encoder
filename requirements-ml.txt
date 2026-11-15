@@ -1,0 +1,9 @@
+# Зависимости для ML-части практикума (помимо head_period_analysis.py)
+# Установка: .venv/bin/pip install -r requirements-ml.txt
+numpy>=1.26
+pandas>=2.0
+scipy>=1.10
+matplotlib>=3.7
+scikit-learn>=1.4
+statsmodels>=0.14
+torch>=2.1
