@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [project.scripts]
-ml-practice-encoder = "ml_practice_encoder:main"
+ml-practice-encoder = "ml_error_prediction:main"
 
 [build-system]
 requires = ["uv_build>=0.12.17,<0.13.0"]
