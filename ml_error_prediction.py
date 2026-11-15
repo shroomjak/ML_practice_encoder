@@ -559,7 +559,6 @@ def plot_comparison(exp_name, outdir, angle, test_rows, predictions):
     axes[0].legend(fontsize=8)
     axes[0].grid(alpha=.3)
 
-    axes[1].plot(angle, mean_test, 'k', lw=1.6)
     for label, curve in predictions.items():
         if label.startswith('Без предсказания'):
             continue
