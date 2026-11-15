@@ -55,6 +55,19 @@ import sys
 import time
 import warnings
 from pathlib import Path
+from sklearn.model_selection import GroupKFold
+from sklearn.ensemble import (GradientBoostingRegressor,
+                              HistGradientBoostingRegressor,
+                              RandomForestRegressor)
+from sklearn.tree import DecisionTreeRegressor
+import statsmodels.api as sm
+import os
+import torch
+import torch.nn as nn
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 import numpy as np
 import pandas as pd
@@ -216,7 +229,6 @@ class FourierModel:
                             n_splits=5, seed=0) -> tuple[int, pd.Series]:
         """Выбор K по 5-fold GroupKFold по оборотам (критерий — RMSE средней
         кривой на отложенных оборотах). Не использует тестовые данные."""
-        from sklearn.model_selection import GroupKFold
         rows = np.asarray(rows, dtype=float)
         groups = np.arange(rows.shape[0])
         gkf = GroupKFold(n_splits=n_splits)
@@ -270,7 +282,6 @@ class ArimaPredictor:
         return out
 
     def fit(self, angle_native, train_rows):
-        import statsmodels.api as sm
         series = self._resample(angle_native, train_rows, self.centers_).ravel()
         series = series[np.isfinite(series)]
         m = self.bins_per_rev
@@ -306,10 +317,6 @@ class ArimaPredictor:
 
 
 def make_tree_models(seed: int):
-    from sklearn.ensemble import (GradientBoostingRegressor,
-                                  HistGradientBoostingRegressor,
-                                  RandomForestRegressor)
-    from sklearn.tree import DecisionTreeRegressor
     return {
         'DecisionTree (depth=8)': DecisionTreeRegressor(
             max_depth=8, min_samples_leaf=100, random_state=seed),
@@ -333,10 +340,6 @@ def train_gru(angle_native, train_rows, seed=0, hidden=32, layers=1,
     Однослойная BiGRU — оптимальный компромисс для CPU (градиентный спуск
     по 1576 шагам BPTT дорог); на 2-ядерной машине эпоха ≈ 4–5 с.
     """
-    import os
-    import torch
-    import torch.nn as nn
-
     torch.set_num_threads(max(1, os.cpu_count() or 1))
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -546,7 +549,6 @@ def evaluate_blocked(profile, seed=0, arima_bins=24, harmonics=8, skip_gru=False
 def evaluate_cv(profile, seed=0, harmonics=8, n_splits=5, skip_gru=True,
                 skip_arima=False, arima_bins=24):
     """Контрольная оценка: 5-fold GroupKFold по оборотам."""
-    from sklearn.model_selection import GroupKFold
     angle = profile.angle_deg
     rows = profile.rows
     groups = np.arange(rows.shape[0])
@@ -577,8 +579,7 @@ def evaluate_cv(profile, seed=0, harmonics=8, n_splits=5, skip_gru=True,
         y_tr = np.nan_to_num(tr).ravel()
         X_all = harmonic_features(angle, harmonics=harmonics)
         # В CV — только быстрые модели: деревья/бустинг/RF уже оценены в блочном тесте
-        from sklearn.ensemble import HistGradientBoostingRegressor
-        from sklearn.tree import DecisionTreeRegressor
+
         cv_models = {
             'DecisionTree (depth=8)': DecisionTreeRegressor(
                 max_depth=8, min_samples_leaf=100, random_state=seed),
@@ -613,9 +614,6 @@ def evaluate_cv(profile, seed=0, harmonics=8, n_splits=5, skip_gru=True,
 # --------------------------------------------------------------------------
 
 def plot_comparison(exp_name, signal, outdir, angle, test_rows, predictions):
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
 
     mean_test = np.nanmean(test_rows, axis=0)
     fig, axes = plt.subplots(2, 1, figsize=(12, 9), sharex=True, constrained_layout=True)
@@ -647,9 +645,6 @@ def plot_comparison(exp_name, signal, outdir, angle, test_rows, predictions):
 
 
 def plot_metric_bars(exp_name, signal, outdir, metrics_rows):
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
 
     names = [r['model'] for r in metrics_rows if 'rmse_deg' in r]
     vals = [r['profile_rmse_deg'] * ARCSEC for r in metrics_rows if 'rmse_deg' in r]

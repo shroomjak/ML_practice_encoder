@@ -221,3 +221,5 @@ __marimo__/
 
 # ML pipeline outputs
 outputs/
+
+uv.lock
